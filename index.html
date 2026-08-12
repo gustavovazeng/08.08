@@ -469,9 +469,14 @@ async function loadData(){
     // data quando ela é válida; quando não é, herda a última data válida vista
     // até ali (as linhas chegam na planilha em ordem cronológica de envio, então
     // a ficha parcial cai perto da data real mesmo sem "Submitted At" próprio).
+    // Passo 2 (forward-fill): as poucas linhas quebradas que aparecem ANTES de
+    // qualquer data válida na planilha (não têm o que herdar pra trás) usam a
+    // PRÓXIMA data válida que aparecer depois delas. Isso garante que nenhuma
+    // ficha é descartada da contagem total só por causa da posição na planilha —
+    // toda linha entra em algum dia, mesmo que aproximado.
     function resolveComBackfill(rows){
       let lastGoodMs=null;
-      return rows.map(r=>{
+      const out=rows.map(r=>{
         const completa=ehCompleta(r);
         const subAt=(r["Submitted At"]||"").trim();
         const rawMs=(subAt&&subAt!==DATA_QUEBRADA)?parseDateTimeMs(subAt):null;
@@ -480,10 +485,16 @@ async function loadData(){
           ms=rawMs;
           lastGoodMs=rawMs;
         }else{
-          ms=lastGoodMs; // sem data própria válida — herda a última data boa
+          ms=lastGoodMs; // sem data própria válida — herda a última data boa (olhando pra trás)
         }
         return{r,completa,ms};
       });
+      let nextGoodMs=null;
+      for(let i=out.length-1;i>=0;i--){
+        if(out[i].ms!=null){ nextGoodMs=out[i].ms; }
+        else if(nextGoodMs!=null){ out[i].ms=nextGoodMs; } // órfã sem nada antes — usa a próxima data válida
+      }
+      return out;
     }
     const trafResolved=resolveComBackfill(trafRows);
     const dispResolved=resolveComBackfill(dispRows);
