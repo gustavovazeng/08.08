@@ -204,8 +204,8 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:.4;cursor:pointer;fi
    renomeada na planilha, atualizar as constantes SHEET_* abaixo. O botão
    "↻ Atualizar" refaz a busca das abas.
 
-   Vendas: sem acesso à planilha de vendas ainda — a aba "Vendas" fica
-   zerada (sem fetch) até que o acesso seja liberado.
+   Vendas: aba "Vendas" (colunas nome, telefone, valor, email, typeform_origem) —
+   casada com as fichas por telefone/e-mail, igual às demais abas.
    ════════════════════════════════════════════════════════════════════════ */
 
 // ── Constantes fixas usadas nas métricas da aba Vendas ─────────────────────
@@ -399,7 +399,7 @@ const SHEET_META     = "Base Meta - Carrinho";
 const SHEET_TRAFEGO  = "Ficha de Interesse - MqmZi9xQ- Tráfego";
 const SHEET_DISPARO  = "Ficha de Interesse - HEHFlsUl- Disparo";
 const SHEET_ORGANICO = "Ficha de Interesse - gaEoa4fj  - Orgânico";
-const SHEET_VENDAS   = null; // ainda sem acesso à planilha de vendas — fica fora do fetch até liberar
+const SHEET_VENDAS   = "Vendas";
 
 async function fetchSheet(label,sheetName){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
@@ -643,12 +643,12 @@ async function loadData(){
     const vendaAttrib=[];
     const vendaOrigem=[]; // vendas casadas (tráfego+orgânico) com origem/canal: {date,tipo,origem,canal,valor,completa}
     for(const r of vendasRows){
-      const nome=(r["Nome"]||"").trim();
-      const ph=normalizePhone(r["Telefone"]);
-      const em=normalizeEmail(r["Email"]);
+      const nome=(r["nome"]||"").trim();
+      const ph=normalizePhone(r["telefone"]);
+      const em=normalizeEmail(r["email"]);
       if(!nome&&!ph&&!em)continue; // linha vazia
       vTotal++;
-      const valor=parseBRL(r["Valor"]);
+      const valor=parseBRL(r["valor"]);
       vFaturamento+=valor;
       const candidates=[];
       if(ph&&earliestByPhone[ph])candidates.push(earliestByPhone[ph]);
