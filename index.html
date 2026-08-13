@@ -280,7 +280,9 @@ function fBRL(n){ return "R$ "+(n||0).toLocaleString("pt-BR",{minimumFractionDig
 function fBRLShort(n){ const a=Math.abs(n||0),sg=n<0?"-":"";if(a>=1000)return sg+"R$ "+(a/1000).toFixed(1).replace(".",",")+"k";return sg+"R$ "+Math.round(a); }
 function fPct(n){ return (n||0).toFixed(2).replace(".",",")+"%"; }
 // Normalização p/ casar venda ↔ ficha por e-mail ou telefone (ignora formatação/país/pontuação)
-function normalizePhone(s){ return String(s||"").replace(/\D/g,""); }
+// Casa venda ↔ ficha só pelos últimos 8 dígitos (o número da linha, sem DDI/DDD) —
+// evita falha de match quando DDI/DDD vêm formatados diferente entre as planilhas.
+function normalizePhone(s){ return String(s||"").replace(/\D/g,"").slice(-8); }
 function normalizeEmail(s){ return String(s||"").trim().toLowerCase(); }
 function fDate(iso){ if(!iso)return"";const[,m,d]=iso.split("-");return `${d}/${m}`; }
 function fDateBR(iso){ if(!iso)return"—";const[y,m,d]=iso.split("-");return `${d}/${m}/${y}`; }
